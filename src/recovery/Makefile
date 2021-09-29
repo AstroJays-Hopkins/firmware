@@ -13,7 +13,11 @@ vpath %.c .
 PROJ_NAME := recovery
 # Project deps
 # add all object dependencies here without the .o extension
+<<<<<<< HEAD
 PROJ_OBJS := main globals handlers init clock
+=======
+PROJ_OBJS := main globals handlers init
+>>>>>>> fe77c67 (Initial Commit of UART functionalities)
 
 ###################################################
 #            BEGIN MAKEFILE INCLUDES              #
