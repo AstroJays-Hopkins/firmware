@@ -13,7 +13,7 @@ vpath %.c .
 PROJ_NAME := recovery
 # Project deps
 # add all object dependencies here without the .o extension
-PROJ_OBJS := main globals handlers init
+PROJ_OBJS := main globals handlers init uart
 
 ###################################################
 #            BEGIN MAKEFILE INCLUDES              #
