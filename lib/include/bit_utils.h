@@ -14,7 +14,7 @@
 /**
  * Clear a multi-bit field in a register
  */
-#define _FLDCLR(reg, field) (reg &= ~(field ## _Msk << field ## _Pos))
+#define _FLDCLR(reg, field) (reg &= ~(field ## _Msk))
 /**
  * Set the value of a register field if it has been zeroed before
  */

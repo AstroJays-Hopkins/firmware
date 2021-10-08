@@ -19,5 +19,5 @@ PROJ_OBJS := main globals init
 #            BEGIN MAKEFILE INCLUDES              #
 ###################################################
 include update_root.mk
-include $(LIBCFG)/atsamd51j18.mk
+include $(LIBCFG)/atsamd21g18a_bl.mk
 include $(CFGDIR)/project.mk 

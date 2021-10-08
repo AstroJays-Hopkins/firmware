@@ -1,8 +1,5 @@
-/**
- * System Initialization function interfaces
- */
-#ifndef _INIT_H_
-#define _INIT_H_
+#ifndef INIT_H_
+#define INIT_H_
 
 /**
  * Prereqs:
@@ -13,6 +10,6 @@
  *
  * Initialize the system with application specific configs
  */
-void AppInit(void);
+void app_init(void);
 
-#endif /* _INIT_H_ */
+#endif /* INIT_H_ */
