@@ -21,14 +21,20 @@ INCLUDES += -I.
 
 .DEFAULT_GOAL := all
 .PHONY: all
-all: $(BUILDIR)/$(PROJ_NAME).hex
+all: $(BUILDIR)/$(PROJ_NAME).bin $(BUILDIR)/$(PROJ_NAME).hex
+
+# bin target
+$(BUILDIR)/$(PROJ_NAME).bin: $(BUILDIR)/$(PROJ_NAME).elf
+	@rm -f $@
+	$(_P_BIN_$(V))$(OBJCOPY) -O binary $<  $@
+	@cp $@ $(HEXDIR)
 
 # hex target
 $(BUILDIR)/$(PROJ_NAME).hex: $(BUILDIR)/$(PROJ_NAME).elf
 	@rm -f $@
 	$(_P_HEX_$(V))$(OBJCOPY) -O ihex $<  $@
 	$(_P_SIZE_$(V))$(SIZE) --format=sysv $<
-	cp $@ $(HEXDIR)
+	@cp $@ $(HEXDIR)
 # elf target
 $(BUILDIR)/$(PROJ_NAME).elf: $(PROJ_DEPS) | $(BUILDIR)
 	$(_P_LD_$(V))$(LD.C) -o $@  $^ $(LDLIBS)

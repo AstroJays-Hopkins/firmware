@@ -10,6 +10,6 @@
  *
  * Initialize the system with application specific configs
  */
-void AppInit(void);
+void app_init(void);
 
 #endif /* INIT_H_ */
