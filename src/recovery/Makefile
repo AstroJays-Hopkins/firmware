@@ -13,15 +13,9 @@ vpath %.c .
 PROJ_NAME := recovery
 # Project deps
 # add all object dependencies here without the .o extension
-<<<<<<< HEAD
-<<<<<<< HEAD
-PROJ_OBJS := main globals handlers init clock
-=======
-PROJ_OBJS := main globals handlers init
->>>>>>> fe77c67 (Initial Commit of UART functionalities)
-=======
-PROJ_OBJS := main globals handlers init
->>>>>>> 683c779 (i2c functionalities written and commented)
+
+PROJ_OBJS := main globals handlers init clock spi i2c uart
+
 
 ###################################################
 #            BEGIN MAKEFILE INCLUDES              #

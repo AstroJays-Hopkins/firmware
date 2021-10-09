@@ -6,7 +6,7 @@
 #include "bit_utils.h"
 #include "pinmap.h"
 #include "clock.h"
-
+#include "uart.h"
 
 /**
  * Prereqs:
@@ -29,6 +29,24 @@ static inline void pin_init(void) {
                                         | PORT_WRCONFIG_INEN(0)       // no input buff
                                         | PORT_WRCONFIG_PMUXEN(0)     // don't mux i.e. digital ctrl
                                         | PORT_WRCONFIG_PINMASK(0x1 << LED_PIN);
+    PORT_REGS->GROUP[LED_BANK].PORT_WRCONFIG = PORT_WRCONFIG_HWSEL(0) // lower half of pins
+                                        | PORT_WRCONFIG_WRPINCFG(1)   // write non-mux configs
+                                        | PORT_WRCONFIG_WRPMUX(1)     // write mux configs
+                                        | PORT_WRCONFIG_DRVSTR(1)     // extra current
+                                        | PORT_WRCONFIG_PULLEN(0)     // no pull up/down
+                                        | PORT_WRCONFIG_INEN(0)       // no input buff
+                                        | PORT_WRCONFIG_PMUXEN(1)     // don't mux i.e. digital ctrl
+                                        | PORT_WRCONFIG_PMUX(0x2)     // function c
+                                        | PORT_WRCONFIG_PINMASK(0x3 << 10);
+    PORT_REGS->GROUP[LED_BANK].PORT_WRCONFIG = PORT_WRCONFIG_HWSEL(0) // lower half of pins
+                                        | PORT_WRCONFIG_WRPINCFG(1)   // write non-mux configs
+                                        | PORT_WRCONFIG_WRPMUX(1)     // write mux configs
+                                        | PORT_WRCONFIG_DRVSTR(1)     // extra current
+                                        | PORT_WRCONFIG_PULLEN(0)     // no pull up/down
+                                        | PORT_WRCONFIG_INEN(0)       // no input buff
+                                        | PORT_WRCONFIG_PMUXEN(1)     // don't mux i.e. digital ctrl
+                                        | PORT_WRCONFIG_PMUX(0x7)     // function h
+                                        | PORT_WRCONFIG_PINMASK(0x1 << 16);                                
     PORT_REGS->GROUP[LED_BANK].PORT_DIR |= 0x1 << LED_PIN;
 }
 
@@ -58,4 +76,5 @@ void app_init() {
     core_clock_init();
     sercom_clock_init();
     systick_init(1000);
+    init_uart(115200);
 }

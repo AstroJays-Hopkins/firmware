@@ -115,7 +115,7 @@ void sercom_clock_init() {
                              | GCLK_GENDIV_ID(0x2); // channel 1
     GCLK_REGS->GCLK_GENCTRL  = GCLK_GENCTRL_RUNSTDBY(0x1)
                                | GCLK_GENCTRL_DIVSEL(0x0) // no divide
-                               | GCLK_GENCTRL_OE(0x0) // don't output to pin
+                               | GCLK_GENCTRL_OE(0x1) // don't output to pin
                                | GCLK_GENCTRL_GENEN(0x1) // enable generator
                                | GCLK_GENCTRL_SRC_OSC8M // source from 32k xtal
                                | GCLK_GENCTRL_ID(0x2); // generator 1

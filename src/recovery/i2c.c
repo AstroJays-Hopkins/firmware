@@ -1,5 +1,5 @@
 #include "sam.h"
-#define FREF 10000000 //10 million
+#include "globals.h"
 
 
 //defined in 28.6.2.1
@@ -9,7 +9,7 @@ void init_i2c(int lowtout, int baud) {
                                       SERCOM_I2CM_CTRLA_INACTOUT_205US| //setting the inactive time out to the highest possible
                                       SERCOM_I2CM_STATUS_LOWTOUT(lowtout); //setting the low
     SERCOM0_REGS->I2CM.SERCOM_CTRLB |= SERCOM_I2CM_CTRLB_SMEN(1); //setting smart enable
-    SERCOM0_REGS->I2CM.SERCOM_BAUD = (FREF/(2*baud))-1; //calculating baud rate for sync
+    SERCOM0_REGS->I2CM.SERCOM_BAUD = (sercom_clock/(2*baud))-1; //calculating baud rate for sync
     SERCOM0_REGS->I2CM.SERCOM_CTRLA |= SERCOM_I2CM_CTRLA_ENABLE(1); //enabling the serial protocol
 }
 //defined in 28.6.2.4.2
@@ -42,6 +42,7 @@ int transmit_address(int read_or_write, int addr) {
     if (slave_on_bus && !rxnack && read_or_write){
         return 1;
     }
+    return 0;
 }   
 //defined in 28.6.2.4.4 and 28.6.2.4.5
 int receive_i2c() {

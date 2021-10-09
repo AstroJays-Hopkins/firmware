@@ -7,7 +7,7 @@
 #include "init.h"
 #include "pinmap.h"
 
-
+#include "uart.h"
 
 /**
  * Prereqs:
@@ -43,9 +43,10 @@ void delay(int ms) {
  */
 void loop() {
     // Better way to toggle pin
-    PORT_REGS->GROUP[LED_BANK].PORT_OUTTGL = 1 << LED_PIN;
+    //PORT_REGS->GROUP[LED_BANK].PORT_OUTTGL = 1 << LED_PIN;
     /* unsigned ticks = 60000; */
     /* while(ticks) --ticks; */
+    transmit_uart(10);
     delay(1000);
     /* // Don't use this way as it's a RMW operation */
     /* _INV_BIT(PORT_REGS->GROUP[LED2_BANK].PORT_OUT, LED2_PIN); */
@@ -55,6 +56,5 @@ void loop() {
 int main(void) {
     SystemInit();
     app_init();
-
     for(;;) loop();
 }
