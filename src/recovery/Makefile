@@ -8,12 +8,12 @@ LDLIBS     +=
 LDLIBS_END +=
 
 # Add all subdirectories here separated by the : char
-vpath %.c .
+vpath %.c .:fpm
 # Project name (sets outputted bins)
 PROJ_NAME := recovery
 # Project deps
 # add all object dependencies here without the .o extension
-PROJ_OBJS := main globals handlers init
+PROJ_OBJS := main globals handlers init fpm
 
 ###################################################
 #            BEGIN MAKEFILE INCLUDES              #
