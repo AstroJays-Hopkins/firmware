@@ -30,7 +30,7 @@ void core_clock_init() {
                              | GCLK_GENDIV_ID(0x1); // channel 1
     GCLK_REGS->GCLK_GENCTRL  = GCLK_GENCTRL_RUNSTDBY(0x1)
                                | GCLK_GENCTRL_DIVSEL(0x0) // no divide
-                               | GCLK_GENCTRL_OE(0x0) // don't output to pin
+                               | GCLK_GENCTRL_OE(0x1) // don't output to pin
                                | GCLK_GENCTRL_GENEN(0x1) // enable generator
                                | GCLK_GENCTRL_SRC_XOSC32K // source from 32k xtal
                                | GCLK_GENCTRL_ID(0x1); // generator 1
@@ -94,6 +94,7 @@ void core_clock_init() {
     // update current clock variable
     SystemCoreClock = CORE_CLOCK;
 }
+
 /**
  * . OSC8M(div/4)->GCLK[2]->2Mhz->serial clocks
  */

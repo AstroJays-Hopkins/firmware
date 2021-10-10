@@ -14,7 +14,7 @@ PROJ_NAME := recovery
 # Project deps
 # add all object dependencies here without the .o extension
 
-PROJ_OBJS := main globals handlers init clock spi i2c uart
+PROJ_OBJS := delay main globals handlers init clock i2c uart
 
 
 ###################################################

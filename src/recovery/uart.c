@@ -1,54 +1,65 @@
+#include "uart.h"
 #include "sam.h"
+
+#include "bit_utils.h"
 #include "globals.h"
 #include "pinmap.h"
+
 //read 26.6.2.1 in the datasheet for more explanation
-void init_uart(unsigned target_baud){
+void init_uart(const uint32_t target_baud){
+    PM_REGS->PM_APBCMASK |= PM_APBCMASK_SERCOM0(0x1);
     //Set External/internal clock in CTRLA.MODE Register which is already done
-    SERCOM0_REGS->USART_EXT.SERCOM_CTRLA = SERCOM_USART_EXT_CTRLA_CMODE_ASYNC //Set Async or Sync in CTRLA.CMODE Register
-                                           | SERCOM_USART_EXT_CTRLA_RXPO_PAD3 //Select PIN to receive data to CTRLA.RXPO
-                                           | SERCOM_USART_EXT_CTRLA_TXPO_PAD2 //Pads for CTRLA.TXPO
-                                           | SERCOM_USART_EXT_CTRLA_DORD_LSB; //Data order bit in CTRLA.DORD register
-    SERCOM0_REGS->USART_EXT.SERCOM_CTRLB = SERCOM_USART_EXT_CTRLB_CHSIZE_8_BIT //Configure Charactersize field in CTRLB.CHSIZE
-                                           | SERCOM_USART_EXT_CTRLB_SBMODE_1_BIT //CTRLB.SBMODE - # of stop bits
-                                           | SERCOM_USART_EXT_CTRLB_RXEN(0x1) //Write 1 to CTRLB.RXEN and CTRLB.TXEN
-                                           | SERCOM_USART_EXT_CTRLB_TXEN(0x1);
-    SERCOM0_REGS->USART_EXT.SERCOM_BAUD = 65536 * (1-16*(target_baud/sercom_clock)); //the fraction is multiplied by 16 which is the sample rate defined in SAMR
-    SERCOM0_REGS->USART_EXT.SERCOM_CTRLA |= SERCOM_USART_EXT_CTRLA_ENABLE(0x1);
-}  
+    SERCOM0_REGS->USART_INT.SERCOM_CTRLA = SERCOM_USART_INT_CTRLA_CMODE_ASYNC          //  ASYNC CLOCK
+                                           | SERCOM_USART_INT_CTRLA_RXPO(0x3)          // recieve on pad 3
+                                           | SERCOM_USART_INT_CTRLA_TXPO(0x1)          // transmit on pad 2
+                                           | SERCOM_USART_INT_CTRLA_SAMPA(0x0)         // 16x over sampling
+                                           | SERCOM_USART_INT_CTRLA_RUNSTDBY(0x1)      // run in standby mode
+                                           | SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK // use BAUD generator, not XCK line
+                                           | SERCOM_USART_INT_CTRLA_DORD_LSB;          // LSB first in data stream
+    SERCOM0_REGS->USART_INT.SERCOM_CTRLB = SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT         // Configure Charactersize field in CTRLB.CHSIZE
+                                           | SERCOM_USART_INT_CTRLB_SBMODE_1_BIT       // CTRLB.SBMODE - # of stop bits
+                                           | SERCOM_USART_INT_CTRLB_RXEN(0x1)          // Write 1 to CTRLB.RXEN and CTRLB.TXEN
+                                           | SERCOM_USART_INT_CTRLB_TXEN(0x1);
+    while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
+    // TODO: implement a FIXED_POINT math library and use for this calculation
+    /* SERCOM0_REGS->USART_INT.SERCOM_BAUD = 65536 * (1-16*(target_baud/sercom_clock)); //the fraction is multiplied by 16 which is the sample rate defined in SAMR */
+    SERCOM0_REGS->USART_INT.SERCOM_BAUD = 5138; // baud = 115200
+    // Note data sheet says that enabling the uart will immediately disable the
+    // TX and RX settings, but we must enable them to start the UART.
+    SERCOM0_REGS->USART_INT.SERCOM_CTRLA |= SERCOM_USART_INT_CTRLA_ENABLE(0x1);
+    while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_ENABLE, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
+}
+
 //read 26.6.2.5 and 26.8.10 in datasheet for more explanation
-int transmit_uart(int write_data){
-    //waiting till the RXC bit is set and the DRE bit is set
-    SERCOM0_REGS->USART_EXT.SERCOM_CTRLB |= SERCOM_USART_EXT_CTRLB_TXEN(0x1);
-    while(!(_FLD2VAL(SERCOM_USART_EXT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_EXT.SERCOM_SYNCBUSY)));
-    PORT_REGS->GROUP[LED_BANK].PORT_OUT = 1 << LED_PIN;
-    if (_FLD2VAL(SERCOM_USART_EXT_CTRLB_TXEN, SERCOM0_REGS->USART_EXT.SERCOM_CTRLB)){
-        PORT_REGS->GROUP[LED_BANK].PORT_OUT = 1 << LED_PIN;
-    }
-    while(!(_FLD2VAL(SERCOM_USART_EXT_INTFLAG_RXC, SERCOM0_REGS->USART_EXT.SERCOM_INTFLAG)) && (_FLD2VAL(SERCOM_USART_EXT_INTFLAG_DRE, SERCOM0_REGS->USART_EXT.SERCOM_INTFLAG)));
+int transmit_uart(const uint8_t write_data){
+    SERCOM0_REGS->USART_INT.SERCOM_CTRLB |= SERCOM_USART_INT_CTRLB_TXEN(0x1);
+    while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
+    /* waiting till the DRE bit is set */
+    while(!_FLD2VAL(SERCOM_USART_INT_INTFLAG_DRE, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG));
     //write to register
-    
-    SERCOM0_REGS->USART_EXT.SERCOM_DATA = write_data;
+    SERCOM0_REGS->USART_INT.SERCOM_DATA = write_data;
     //wait for the register to clear
-    while(!(_FLD2VAL(SERCOM_USART_EXT_INTFLAG_RXC, SERCOM0_REGS->USART_EXT.SERCOM_INTFLAG)) && (_FLD2VAL(SERCOM_USART_EXT_INTFLAG_DRE, SERCOM0_REGS->USART_EXT.SERCOM_INTFLAG)));
+    while(!_FLD2VAL(SERCOM_USART_INT_INTFLAG_TXC, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG));
     //close transmission
-    SERCOM0_REGS->USART_EXT.SERCOM_CTRLB = SERCOM_USART_EXT_CTRLB_TXEN(0x0);
+    _FLDCLR(SERCOM0_REGS->USART_INT.SERCOM_CTRLB, SERCOM_USART_INT_CTRLB_TXEN);
+    while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
     return 0;
 }
 //read 26.6.2.6 and 26.8.10 in datasheet for more explanation
 int receive_uart(){
     //waiting till the RXC bit is set and the DRE bit is set
-    while(!(_FLD2VAL(SERCOM_USART_EXT_INTFLAG_RXC, SERCOM0_REGS->USART_EXT.SERCOM_INTFLAG) && _FLD2VAL(SERCOM_USART_EXT_INTFLAG_DRE, SERCOM0_REGS->USART_EXT.SERCOM_INTFLAG)));
+    while(!(_FLD2VAL(SERCOM_USART_INT_INTFLAG_RXC, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG) && _FLD2VAL(SERCOM_USART_INT_INTFLAG_DRE, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG)));
     //error handling
-    int bufovf = _FLD2VAL(SERCOM_USART_EXT_STATUS_BUFOVF, SERCOM0_REGS->USART_EXT.SERCOM_STATUS);
-    int ferr = _FLD2VAL(SERCOM_USART_EXT_STATUS_FERR, SERCOM0_REGS->USART_EXT.SERCOM_STATUS);
-    int coll = _FLD2VAL(SERCOM_USART_EXT_STATUS_COLL, SERCOM0_REGS->USART_EXT.SERCOM_STATUS);
+    int bufovf = _FLD2VAL(SERCOM_USART_INT_STATUS_BUFOVF, SERCOM0_REGS->USART_INT.SERCOM_STATUS);
+    int ferr = _FLD2VAL(SERCOM_USART_INT_STATUS_FERR, SERCOM0_REGS->USART_INT.SERCOM_STATUS);
+    int coll = _FLD2VAL(SERCOM_USART_INT_STATUS_COLL, SERCOM0_REGS->USART_INT.SERCOM_STATUS);
     //if any of the status are bad error
     if (bufovf||ferr||coll){
         return -1;
-    } 
+    }
     //reading from data register
-    int data = _FLD2VAL(SERCOM_USART_EXT_DATA_DATA, SERCOM0_REGS->USART_EXT.SERCOM_DATA);
+    int data = _FLD2VAL(SERCOM_USART_INT_DATA_DATA, SERCOM0_REGS->USART_INT.SERCOM_DATA);
     //ending recieving
-    SERCOM0_REGS->USART_EXT.SERCOM_CTRLB = SERCOM_USART_EXT_CTRLB_RXEN(0x0);
+    SERCOM0_REGS->USART_INT.SERCOM_CTRLB = SERCOM_USART_INT_CTRLB_RXEN(0x0);
     return data;
 }
