@@ -14,12 +14,14 @@ void init_uart(const uint32_t target_baud){
                                            | SERCOM_USART_INT_CTRLA_TXPO(0x1)          // transmit on pad 2
                                            | SERCOM_USART_INT_CTRLA_SAMPA(0x0)         // 16x over sampling
                                            | SERCOM_USART_INT_CTRLA_RUNSTDBY(0x1)      // run in standby mode
+                                           | SERCOM_USART_INT_CTRLA_FORM(0x0)
                                            | SERCOM_USART_INT_CTRLA_MODE_USART_INT_CLK // use BAUD generator, not XCK line
                                            | SERCOM_USART_INT_CTRLA_DORD_LSB;          // LSB first in data stream
     SERCOM0_REGS->USART_INT.SERCOM_CTRLB = SERCOM_USART_INT_CTRLB_CHSIZE_8_BIT         // Configure Charactersize field in CTRLB.CHSIZE
                                            | SERCOM_USART_INT_CTRLB_SBMODE_1_BIT       // CTRLB.SBMODE - # of stop bits
                                            | SERCOM_USART_INT_CTRLB_RXEN(0x1)          // Write 1 to CTRLB.RXEN and CTRLB.TXEN
-                                           | SERCOM_USART_INT_CTRLB_TXEN(0x1);
+                                           | SERCOM_USART_INT_CTRLB_TXEN(0x1)
+                                           /*| SERCOM_USART_INT_CTRLB_SFDE(0x1)*/;
     while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
     // TODO: implement a FIXED_POINT math library and use for this calculation
     /* SERCOM0_REGS->USART_INT.SERCOM_BAUD = 65536 * (1-16*(target_baud/sercom_clock)); //the fraction is multiplied by 16 which is the sample rate defined in SAMR */
@@ -46,10 +48,17 @@ int transmit_uart(const uint8_t write_data){
     return 0;
 }
 //read 26.6.2.6 and 26.8.10 in datasheet for more explanation
-int receive_uart(){
-    //waiting till the RXC bit is set and the DRE bit is set
-    while(!(_FLD2VAL(SERCOM_USART_INT_INTFLAG_RXC, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG) && _FLD2VAL(SERCOM_USART_INT_INTFLAG_DRE, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG)));
-    //error handling
+uint8_t receive_uart(){
+    SERCOM0_REGS->USART_INT.SERCOM_CTRLB |= SERCOM_USART_INT_CTRLB_RXEN(0x1);
+    while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
+    /*
+    if (_FLD2VAL(SERCOM_USART_INT_INTFLAG_RXS, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG)){
+        PORT_REGS->GROUP[LED_BANK].PORT_OUT = 0 << LED_PIN;
+    }
+    return 0;
+    */
+    while(!_FLD2VAL(SERCOM_USART_INT_INTFLAG_RXC, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG));
+    
     int bufovf = _FLD2VAL(SERCOM_USART_INT_STATUS_BUFOVF, SERCOM0_REGS->USART_INT.SERCOM_STATUS);
     int ferr = _FLD2VAL(SERCOM_USART_INT_STATUS_FERR, SERCOM0_REGS->USART_INT.SERCOM_STATUS);
     int coll = _FLD2VAL(SERCOM_USART_INT_STATUS_COLL, SERCOM0_REGS->USART_INT.SERCOM_STATUS);
@@ -58,8 +67,10 @@ int receive_uart(){
         return -1;
     }
     //reading from data register
-    int data = _FLD2VAL(SERCOM_USART_INT_DATA_DATA, SERCOM0_REGS->USART_INT.SERCOM_DATA);
+    uint8_t data = _FLD2VAL(SERCOM_USART_INT_DATA_DATA, SERCOM0_REGS->USART_INT.SERCOM_DATA);
     //ending recieving
-    SERCOM0_REGS->USART_INT.SERCOM_CTRLB = SERCOM_USART_INT_CTRLB_RXEN(0x0);
+    _FLDCLR(SERCOM0_REGS->USART_INT.SERCOM_CTRLB, SERCOM_USART_INT_CTRLB_RXEN);
+    while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
     return data;
+    
 }

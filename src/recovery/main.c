@@ -19,21 +19,29 @@
  *
  * Main system loop body, called in main
  */
+char i = 'A';
+
 void loop() {
     // setup transmit buffer
-    const uint8_t buf[] = "Hello world!\n";
-    char c;
-    int i = 0;
-
+    //const uint8_t buf[] = "Hello world!\n";
+    //char c;
+    
     PORT_REGS->GROUP[LED_BANK].PORT_OUT = 1 << LED_PIN;
-    while ((c = buf[i]) != '\0') {
-        transmit_uart(c);
-        delay(5, DELAY_F_US);
-        ++i;
-    }
-    PORT_REGS->GROUP[LED_BANK].PORT_OUT = 0 << LED_PIN;
+    //transmit_uart(++i);
+    
+    //while ((c = buf[i]) != '\0') {
+    //    transmit_uart(c);
+    //    delay(5, DELAY_F_US);
+    //   ++i;
+    //}
+    //transmit_uart('a');
 
-    delay(300, DELAY_F_MS);
+    i = receive_uart();
+    delay(100, DELAY_F_MS);
+    transmit_uart('a');
+    PORT_REGS->GROUP[LED_BANK].PORT_OUT = 0 << LED_PIN;
+    delay(500, DELAY_F_MS);
+    
 }
 
 int main(void) {
