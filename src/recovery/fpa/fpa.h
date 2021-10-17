@@ -20,18 +20,4 @@ q16_16_t partstofpa(uint16_t, uint16_t);
 uint16_t extractint(q16_16_t);
 uint16_t extractfrac(q16_16_t);
 
-typedef uint32_t decimal;
-
-decimal add(decimal, decimal);
-decimal subtract(decimal, decimal);
-decimal multiply(decimal, decimal);
-decimal divide(decimal, decimal);
-
-decimal tofpa(uint16_t);
-decimal partstofpa(uint16_t, uint16_t);
-
-uint16_t extractint(q16_16_t);
-uint16_t extractfrac(q16_16_t);
-
-
 #endif
