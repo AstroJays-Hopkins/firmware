@@ -12,4 +12,4 @@ fpa.o: fpa.c
 	$(CC) $(CFLAGS) -c fpa.c
 
 clean:
-	rm test *.o
+	rm -f test *.o
