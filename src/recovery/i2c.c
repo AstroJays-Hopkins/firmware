@@ -50,11 +50,18 @@ int transmit_address(int read_or_write, int addr) {
     }
     //checking if the write was successful
     if (master_on_bus && !rxnack && !read_or_write){
+        //three things to do
+        //either send data
+        //transmit a new address
+        //end the transaction
         return 0;
     }
     //checking if the read was successful 
     int slave_on_bus = _FLD2VAL(SERCOM_I2CM_INTFLAG_SB, SERCOM0_REGS->I2CM.SERCOM_STATUS);
     if (slave_on_bus && !rxnack && read_or_write){
+        //read data by sending ACK or automatically sent in smart mode.
+        //transmit a new address
+        //end the transaction
         return 1;
     }
     return 0;

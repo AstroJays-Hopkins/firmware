@@ -19,7 +19,7 @@
  *
  * Main system loop body, called in main
  */
-char i = 'A';
+char i;
 
 void loop() {
     // setup transmit buffer
@@ -35,10 +35,9 @@ void loop() {
     //   ++i;
     //}
     //transmit_uart('a');
-
-    i = receive_uart();
+    i=receive_uart();
     delay(100, DELAY_F_MS);
-    transmit_uart('a');
+    transmit_uart(i);
     PORT_REGS->GROUP[LED_BANK].PORT_OUT = 0 << LED_PIN;
     delay(500, DELAY_F_MS);
     

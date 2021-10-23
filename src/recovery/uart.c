@@ -12,6 +12,7 @@ void comm_interrupt_init() {
     NVIC_SetPriority(SERCOM0_IRQn, 2);        // set usart interrupts to 2nd lowest priority
     NVIC_EnableIRQ(SERCOM0_IRQn);             // enable interrupt
 }
+
 void SERCOM0_Handler(){
     //if Recieve complete
     if (_FLD2VAL(SERCOM_USART_INT_INTFLAG_RXC, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG)){
@@ -21,6 +22,7 @@ void SERCOM0_Handler(){
         SERCOM0_REGS->USART_INT.SERCOM_INTENCLR |= SERCOM_USART_INT_INTENCLR_RXC(0x1);
     }
 }
+
 //read 26.6.2.1 in the datasheet for more explanation
 void init_uart(const uint32_t target_baud){
     PM_REGS->PM_APBCMASK |= PM_APBCMASK_SERCOM0(0x1);
@@ -40,6 +42,7 @@ void init_uart(const uint32_t target_baud){
     //wait for sync busy
     while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
     //activate rxc interrupt
+    SERCOM0_REGS->USART_INT.SERCOM_INTENCLR |= SERCOM_USART_INT_INTENCLR_RXC(0x1);
     SERCOM0_REGS->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_RXC(0x1);
     // TODO: implement a FIXED_POINT math library and use for this calculation
     /* SERCOM0_REGS->USART_INT.SERCOM_BAUD = 65536 * (1-16*(target_baud/sercom_clock)); //the fraction is multiplied by 16 which is the sample rate defined in SAMR */
@@ -67,7 +70,7 @@ int transmit_uart(const uint8_t write_data){
     return 0;
 }
 //read 26.6.2.6 and 26.8.10 in datasheet for more explanation
-uint8_t receive_uart(){
+/*uint8_t receive_uart(){
     SERCOM0_REGS->USART_INT.SERCOM_CTRLB |= SERCOM_USART_INT_CTRLB_RXEN(0x1);
     while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
     //wait for receive clear 
@@ -81,9 +84,12 @@ uint8_t receive_uart(){
         return -1;
     }
     //reading from data register
-    uint8_t data = SERCOM0_REGS->USART_INT.SERCOM_DATA;
+    //uint8_t data = SERCOM0_REGS->USART_INT.SERCOM_DATA;
     //ending recieving
     _FLDCLR(SERCOM0_REGS->USART_INT.SERCOM_CTRLB, SERCOM_USART_INT_CTRLB_RXEN);
     while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
-    return data;
+    return 0;
+}*/
+uint8_t receive_uart(){
+    return global_data;
 }
