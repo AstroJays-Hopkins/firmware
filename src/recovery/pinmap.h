@@ -8,4 +8,7 @@
 #define LED_BANK 1
 #define LED_PIN 8
 
+#define SS_BANK 1
+#define SS_PIN 9
+
 #endif /* _PINMAP_H_ */
