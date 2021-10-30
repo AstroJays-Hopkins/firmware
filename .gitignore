@@ -159,3 +159,6 @@ bin/
 vendor/
 vendor
 compile_commands.json
+.idea/vcs.xml
+settings.json
+.idea/.gitignore
