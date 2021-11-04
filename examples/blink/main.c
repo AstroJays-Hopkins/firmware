@@ -63,7 +63,7 @@ void delay(int ms) {
  */
 void loop() {
     // Better way to toggle pin
-    PORT_REGS->GROUP[LED_BANK].PORT_OUTTGL = 1 << LED_PIN;
+    //PORT_REGS->GROUP[LED_BANK].PORT_OUTTGL = 1 << LED_PIN;
     /* unsigned ticks = 60000; */
     /* while(ticks) --ticks; */
     delay(1000);

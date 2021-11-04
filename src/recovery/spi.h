@@ -1,5 +1,12 @@
-void init_spi(int target_baud);
+#ifndef PRINTF_H_
+#define PRINTF_H_
 
-void transmit_spi(int data);
+#include <stdint.h>
 
-int receive_spi();
+void init_spi(uint32_t target_baud);
+
+uint8_t transmit_spi(uint8_t data);
+
+uint8_t receive_spi();
+
+#endif
