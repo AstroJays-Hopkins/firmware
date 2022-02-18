@@ -21,5 +21,5 @@ PROJ_OBJS := delay main globals handlers init clock i2c uart
 #            BEGIN MAKEFILE INCLUDES              #
 ###################################################
 include update_root.mk
-include $(LIBCFG)/atsamd21g18a_bl.mk
+include $(LIBCFG)/atsamd21g18a.mk
 include $(CFGDIR)/project.mk 

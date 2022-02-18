@@ -10,8 +10,8 @@
 # Profiles
 ################
 # DEBUG configuration profile
-CONF_DEBUG_CFLAGS  := -Og
-CONF_DEBUG_LDFLAGS :=
+CONF_DEBUG_CFLAGS  := -Og -g
+CONF_DEBUG_LDFLAGS := -g
 CONF_DEBUG_LDLIBS  :=
 # RELEASE Configuration profile
 CONF_RELEASE_CFLAGS  := -Os -ffunction-sections -fdata-sections
