@@ -9,6 +9,8 @@
 static uint8_t global_data = 0; 
 
 void comm_interrupt_init() {
+    NVIC_DisableIRQ(SERCOM0_IRQn);
+    NVIC_ClearPendingIRQ(SERCOM0_IRQn);
     NVIC_SetPriority(SERCOM0_IRQn, 2);        // set usart interrupts to 2nd lowest priority
     NVIC_EnableIRQ(SERCOM0_IRQn);             // enable interrupt
 }
