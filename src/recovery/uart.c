@@ -17,11 +17,14 @@ void comm_interrupt_init() {
 
 void SERCOM0_Handler(){
     //if Recieve complete
+    //(SERCOM0_REGS->USART_INT.SERCOM_INTFLAG & SERCOM_USART_INTFLAG_RXC) >> SERCOM_USART_INTFLAG_RXC_Pos;
+    while(1);
     if (_FLD2VAL(SERCOM_USART_INT_INTFLAG_RXC, SERCOM0_REGS->USART_INT.SERCOM_INTFLAG)){
         //put data into global 
-        global_data = SERCOM0_REGS->USART_INT.SERCOM_DATA;
+        global_data = SERCOM0_REGS->USART_INT.SERCOM_DATA;	
+        while(1);		
         //clear the interrupt
-        SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = 0;			
+        SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = 0;
     }
 }
 
@@ -45,8 +48,9 @@ void init_uart(const uint32_t target_baud){
     while(_FLD2VAL(SERCOM_USART_INT_SYNCBUSY_CTRLB, SERCOM0_REGS->USART_INT.SERCOM_SYNCBUSY));
     //activate rxc interrupt
     //SERCOM0_REGS->USART_INT.SERCOM_INTENCLR |= SERCOM_USART_INT_INTENCLR_RXC(0x1);
-    SERCOM0_REGS->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_RXC(0x1);
-    SERCOM0_REGS->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_RXS(0x1);
+    //SERCOM0_REGS->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_RXC(0x1);
+    //SERCOM0_REGS->USART_INT.SERCOM_INTENSET |= SERCOM_USART_INT_INTENSET_RXS(0x1);
+    SERCOM0_REGS->USART_INT.SERCOM_INTENSET = ~(0);
     SERCOM0_REGS->USART_INT.SERCOM_INTENCLR = 0;
     // TODO: implement a FIXED_POINT math library and use for this calculation
     /* SERCOM0_REGS->USART_INT.SERCOM_BAUD = 65536 * (1-16*(target_baud/sercom_clock)); //the fraction is multiplied by 16 which is the sample rate defined in SAMR */

@@ -8,10 +8,10 @@
 void init_i2c(int lowtout, int baud) {
     //lowtout 0 or 1
     PM_REGS->PM_APBCMASK |= PM_APBCMASK_SERCOM0(0x1);
-    SERCOM0_REGS->I2CM.SERCOM_CTRLA = SERCOM_I2CM_CTRLA_MODE_I2C_MASTER| //setting it as master
+    SERCOM0_REGS->I2CM.SERCOM_CTRLA |= SERCOM_I2CM_CTRLA_MODE_I2C_MASTER| //setting it as master
                                       SERCOM_I2CM_CTRLA_INACTOUT_205US| //setting the inactive time out to the highest possible
                                       SERCOM_I2CM_STATUS_LOWTOUT(lowtout); //setting the low
-    SERCOM0_REGS->I2CM.SERCOM_CTRLB |= SERCOM_I2CM_CTRLB_SMEN(0x1); //setting smart enable
+    SERCOM0_REGS->I2CM.SERCOM_CTRLB |= SERCOM_I2CM_CTRLB_SMEN(0x0); //setting smart enable
     
     
     SERCOM0_REGS->I2CM.SERCOM_BAUD = (sercom_clock/(2*baud))-1; //calculating baud rate for sync
