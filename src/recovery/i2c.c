@@ -17,7 +17,7 @@ void init_i2c(int lowtout, int baud) {
     SERCOM0_REGS->I2CM.SERCOM_BAUD = (sercom_clock/(2*baud))-1; //calculating baud rate for sync
     SERCOM0_REGS->I2CM.SERCOM_CTRLA |= SERCOM_I2CM_CTRLA_ENABLE(0x1); //enabling the serial protocol
     while(_FLD2VAL(SERCOM_I2CM_SYNCBUSY_ENABLE, SERCOM0_REGS->I2CM.SERCOM_SYNCBUSY));
-    SERCOM0_REGS->I2CM.SERCOM_STATUS = SERCOM_I2CM_STATUS_BUSSTATE(0x1);
+    SERCOM0_REGS->I2CM.SERCOM_STATUS |= SERCOM_I2CM_STATUS_BUSSTATE(0x1);
     while(_FLD2VAL(SERCOM_I2CM_SYNCBUSY_SYSOP, SERCOM0_REGS->I2CM.SERCOM_SYNCBUSY));
 }
 //defined in 28.6.2.4.2
@@ -30,18 +30,15 @@ int transmit_address(int read_or_write, int addr) {
     SERCOM0_REGS->I2CM.SERCOM_STATUS |= SERCOM_I2CM_CTRLB_CMD(0x1);
     while(_FLD2VAL(SERCOM_I2CM_SYNCBUSY_SYSOP, SERCOM0_REGS->I2CM.SERCOM_SYNCBUSY));
     //write address
-    SERCOM0_REGS->I2CM.SERCOM_ADDR = SERCOM_I2CM_ADDR_ADDR(addr| read_or_write); //sending the address of the peripheral with a read or write bit ORed on
+    SERCOM0_REGS->I2CM.SERCOM_ADDR = SERCOM_I2CM_ADDR_ADDR((addr<<1)| read_or_write); //sending the address of the peripheral with a read or write bit ORed on
+
     while(_FLD2VAL(SERCOM_I2CM_SYNCBUSY_SYSOP, SERCOM0_REGS->I2CM.SERCOM_SYNCBUSY));
     int master_on_bus = _FLD2VAL(SERCOM_I2CM_INTFLAG_MB, SERCOM0_REGS->I2CM.SERCOM_INTFLAG); //checking for master_on_bus bit set
-    int arb_loss_error = _FLD2VAL(SERCOM_I2CM_STATUS_ARBLOST, SERCOM0_REGS->I2CM.SERCOM_STATUS); //checking for arbitration loss error
+
     int bus_error  = _FLD2VAL(SERCOM_I2CM_STATUS_BUSERR, SERCOM0_REGS->I2CM.SERCOM_STATUS); //checking for master bus error
     //checking if bus error
-    if (master_on_bus && arb_loss_error && bus_error){
+    if (bus_error){
         return -1;
-    }
-    //checking if arbitration loss error
-    else if (master_on_bus && arb_loss_error){
-        return -2;
     }
     //checking if an ack was recieved
     int rxnack = _FLD2VAL(SERCOM_I2CM_STATUS_RXNACK, SERCOM0_REGS->I2CM.SERCOM_STATUS); //checking if no ack was recieved
@@ -69,7 +66,17 @@ int transmit_address(int read_or_write, int addr) {
 //defined in 28.6.2.4.4 and 28.6.2.4.5
 int receive_i2c() {
     //read data in from data register
-    int data = SERCOM0_REGS->I2CM.SERCOM_DATA;
+    int sent_byte = _FLD2VAL(SERCOM_I2CM_SYNCBUSY_SYSOP, SERCOM0_REGS->I2CM.SERCOM_INTFLAG);
+    //TODO MAX RESOLVE RACE CONDITION IF IT EXISTS
+    if (sent_byte){
+        SERCOM0_REGS->I2CM.SERCOM_CTRLB |= SERCOM_I2CM_CTRLB_ACKACT(0x0);
+        int data = SERCOM0_REGS->I2CM.SERCOM_DATA;
+    }
+    else{
+        int data = 0;
+        SERCOM0_REGS->I2CM.SERCOM_CTRLB |= SERCOM_I2CM_CTRLB_ACKACT(0x1);
+    }
+    //TODO MAX RESOLVE TURNING OFF RECIEVE AFTER ONE USE
     //send end condition
     SERCOM0_REGS->I2CM.SERCOM_STATUS |= SERCOM_I2CM_CTRLB_CMD(0x3);
     while(_FLD2VAL(SERCOM_I2CM_SYNCBUSY_SYSOP, SERCOM0_REGS->I2CM.SERCOM_SYNCBUSY));
@@ -85,12 +92,9 @@ int transmit_i2c(int write_data) {
     //must wait for rxnack to not be set 
     while(!_FLD2VAL(SERCOM_I2CM_STATUS_RXNACK, SERCOM0_REGS->I2CM.SERCOM_STATUS));
     //send end condition
+    //TODO MAX Needs to decide whether to end the transmission after each packet
     SERCOM0_REGS->I2CM.SERCOM_STATUS |= SERCOM_I2CM_CTRLB_CMD(0x3);
     while(_FLD2VAL(SERCOM_I2CM_SYNCBUSY_SYSOP, SERCOM0_REGS->I2CM.SERCOM_SYNCBUSY));
-    //if arbitration loss happens error
-    if (_FLD2VAL(SERCOM_I2CM_STATUS_ARBLOST, SERCOM0_REGS->I2CM.SERCOM_STATUS)){
-        return -1;
-    }
     //if not return successful 
     return 0;
 }
