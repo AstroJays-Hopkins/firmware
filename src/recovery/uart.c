@@ -32,6 +32,7 @@ void SERCOM0_Handler(){
 void init_uart(const uint32_t target_baud){
     PM_REGS->PM_APBCMASK |= PM_APBCMASK_SERCOM0(0x1);
     //Set External/internal clock in CTRLA.MODE Register which is already done
+    //TODO DO we activate the specific peripheral mode - max 3/17/22
     SERCOM0_REGS->USART_INT.SERCOM_CTRLA = SERCOM_USART_INT_CTRLA_CMODE_ASYNC          //  ASYNC CLOCK
                                            | SERCOM_USART_INT_CTRLA_RXPO(0x3)          // recieve on pad 3
                                            | SERCOM_USART_INT_CTRLA_TXPO(0x1)          // transmit on pad 2

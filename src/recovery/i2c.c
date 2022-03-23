@@ -61,7 +61,6 @@ int transmit_address(int read_or_write, int addr) {
         //end the transaction
         return 1;
     }
-    return 0;
 }   
 //defined in 28.6.2.4.4 and 28.6.2.4.5
 int receive_i2c() {
