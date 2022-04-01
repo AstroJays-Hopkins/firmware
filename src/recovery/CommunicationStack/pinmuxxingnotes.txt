@@ -1,0 +1,9 @@
+which functionality we want is we set to number at top
+each pad is tx,rx, sck, sda, sdo, sdi
+
+ABCDEFGH
+Direction
+Pin Number
+Pin Group 0 1
+
+//todo is to see if we need to see more later
