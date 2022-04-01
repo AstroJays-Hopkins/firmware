@@ -65,14 +65,15 @@ int transmit_address(int read_or_write, int addr) {
 //defined in 28.6.2.4.4 and 28.6.2.4.5
 int receive_i2c() {
     //read data in from data register
+    int data;
     int sent_byte = _FLD2VAL(SERCOM_I2CM_SYNCBUSY_SYSOP, SERCOM0_REGS->I2CM.SERCOM_INTFLAG);
     //TODO MAX RESOLVE RACE CONDITION IF IT EXISTS
     if (sent_byte){
         SERCOM0_REGS->I2CM.SERCOM_CTRLB |= SERCOM_I2CM_CTRLB_ACKACT(0x0);
-        int data = SERCOM0_REGS->I2CM.SERCOM_DATA;
+        data = SERCOM0_REGS->I2CM.SERCOM_DATA;
     }
     else{
-        int data = 0;
+        data = 0;
         SERCOM0_REGS->I2CM.SERCOM_CTRLB |= SERCOM_I2CM_CTRLB_ACKACT(0x1);
     }
     //TODO MAX RESOLVE TURNING OFF RECIEVE AFTER ONE USE
